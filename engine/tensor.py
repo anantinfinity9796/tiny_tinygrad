@@ -99,6 +99,7 @@ class Tensor(object):
 
         out._backward = _backward
         return out
+
     def __rmatmul__(self, other):
         """ Used for the reverse matrix multiplication."""
         return self @ other
