@@ -2,4 +2,4 @@ __pycache__
 main.py
 doubts.py
 */.pytest_cache
-engine/__pycache__/
+**/engine/__pycache__/
