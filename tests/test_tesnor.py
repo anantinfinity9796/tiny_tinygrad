@@ -9,17 +9,19 @@ from nn import layers
 # It's standard practice to define fixtures at the start of the file.
 
 
-@pytest.fixture
-def create_tensors():
+def create_tensors(n_tensors=1, label='', shape=(1,4)) -> list():
     """ This fixture for creating a fixed number of tensors which are passed in the argument above n_tensors.
-        By default it creates one tensor of the shape(1,4)"""
+        By default, it creates one tensor of the shape(1,4)"""
     tensor_list = []
-    shape = (1, 4)
-    for i in range(2):
-        label = f"Tensor_{np.random.randint(low=0, high=10)}"
+    for i in range(n_tensors):
+        if label == '':
+            label = f"Tensor_{np.random.randint(low=0, high=10)}"
         data = np.random.randint(low=0, high=500, size=shape)
         tensor_list.append(Tensor(data=data, label=label))
-    return tensor_list
+    if len(tensor_list) == 1:
+        return tensor_list[0]
+    else:
+        return tensor_list
 
     # def _tensor_factory(**kwargs) -> Tensor:
     #     tensor_label = kwargs.pop('label',str(np.random.randint(low=1, high=10000000)))
@@ -41,15 +43,92 @@ def create_tensors():
 
 ])
 def test_initialization(data, label):
-    tensor = Tensor(data=data, label=label)
-    print(tensor)
+    """ Tests the initialization of the tensors"""
+    tensor = Tensor(data=data, label = label)
     assert isinstance(tensor, Tensor)
     assert isinstance(tensor.data, np.ndarray)
     assert isinstance(tensor.label, str)
+    assert tensor.shape == tensor.data.shape
 
 # Testing the addition of two tensor objects
-def test_addtensor(create_tensors):
-    tensor_list = create_tensors
-    assert isinstance(tensor_list[0], Tensor)
-    assert(tensor_list[0].shape == (1, 4))
+def test_add_tensor():
+    """ Function for testing the addition of two tensors. """
+    tensor_list = create_tensors(n_tensors=2, shape=(2,3))
 
+    # creating variables of addition of the tensors
+    tensor_add = (tensor_list[0] + tensor_list[1]).data
+    ndarray_add = tensor_list[0].data + tensor_list[1].data
+    # comparing the arrays
+    assert isinstance(tensor_list[0], Tensor)
+    assert (tensor_list[0].shape == (2, 3))
+    assert np.array_equal(tensor_add, ndarray_add)
+
+# Testing the subtraction of two tensors
+def test_sub_tensor():
+    """ Function for testing the subtraction of two tensors. Because of the way sub is implemented negation is also tested here. """
+    tensor_list = create_tensors(n_tensors=2, shape=(2,3))
+
+    # creating variables of addition of the tensors
+    tensor_sub = (tensor_list[0] - tensor_list[1]).data
+    ndarray_sub = tensor_list[0].data - tensor_list[1].data
+    # comparing the arrays
+    assert isinstance(tensor_list[0], Tensor)
+    assert (tensor_list[0].shape == (2, 3))
+    assert np.array_equal(tensor_sub, ndarray_sub)
+
+# Testing the multiplication of two tensors
+def test_matmul_tensor():
+    """ Function for testing of the matrix-multiplication of two tensors. """
+    tensor_1 = create_tensors(n_tensors=1, shape=(2, 3))
+    tensor_2 = create_tensors(n_tensors=1, shape=(3, 2))
+
+    # creating variables for the multiplication of the tensors
+    tensor_mul = tensor_1 @ tensor_2
+    ndarray_mul = tensor_1.data @ tensor_2.data
+    reverse = tensor_2 @ tensor_1
+
+    # comparing the tensors
+    assert np.array_equal(tensor_mul.data, ndarray_mul)
+    assert tensor_mul.shape == ndarray_mul.shape
+    assert reverse.shape == (3, 3)
+    assert ndarray_mul.shape == (2, 2)
+
+# Testing the division of two tensors
+def test_div_tensor():
+    """ Testing the division of two tensors. """
+    tensor_1 = create_tensors(n_tensors=1, shape=(2, 2))
+    tensor_2 = create_tensors(n_tensors=1, shape=(2, 2))
+
+    tensor_div = tensor_1 / tensor_2
+    ndarray_div = tensor_1.data / tensor_2.data
+    assert isinstance(tensor_div, Tensor)
+    tensor_div = tensor_div.data
+    assert isinstance(tensor_div, np.ndarray)
+    assert isinstance(ndarray_div, np.ndarray)
+    assert tensor_div.shape == (2,2)
+    assert ndarray_div.shape == (2,2)
+    # assert np.array_equal(tensor_div, ndarray_div)
+
+# Testing for a tensor raised to a power
+def test_pow():
+    """ Testing the tensor elements raised to a power. """
+    tensor_1 = create_tensors(n_tensors=1, shape=(4, 2))
+    tensor_pow = tensor_1 ** 2
+    ndarray_pow =  np.power(tensor_1.data, 2)
+
+    assert isinstance(tensor_pow, Tensor)
+    assert tensor_pow.shape == (4, 2)
+    assert np.array_equal(tensor_pow.data, ndarray_pow)
+
+
+# Testing the exp function
+def test_exp():
+    """ Testing the euler's number raised to the tensor i.e. exp(tensor). """
+    tensor_1 = create_tensors(n_tensors=1, shape=(4, 2))
+
+    tensor_exp = tensor_1.exp()
+    ndarray_exp = np.exp(tensor_1.data)
+
+    assert isinstance(tensor_exp, Tensor)
+    assert tensor_exp.shape == (4, 2)
+    assert np.array_equal(tensor_exp.data, ndarray_exp)
